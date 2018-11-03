@@ -1,7 +1,7 @@
 
 /*
 
-Drinkomatic server by Jimmy Eiterjord
+drinkOmatic server by Jimmy Eiterjord
 
 Run with:
 sudo node drinkomatic-server
