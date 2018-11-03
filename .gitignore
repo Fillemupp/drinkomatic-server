@@ -1,0 +1,5 @@
+node_modules
+.DS_Store
+._drinkomatic-server.js
+package-lock.json
+package.json
