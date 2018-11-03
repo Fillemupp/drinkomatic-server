@@ -7,7 +7,7 @@ Run with:
 sudo node drinkomatic-server
 
 Will connect to:
-drinkomatic-firmware at serial port /dev/ttyUSB0
+drinkomatic-fw at serial port /dev/ttyUSB0
 Mongo database at 127.0.0.1
 
 Opens http port at 3000 for web browser user interface
