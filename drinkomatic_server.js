@@ -10,7 +10,7 @@ Will connect to:
 drinkomatic-fw at serial port /dev/ttyUSB0
 Mongo database at 127.0.0.1
 
-Opens http port at 3000 for web browser user interface
+Opens http port at 80 for web browser user interface
 
 */
 
@@ -200,8 +200,8 @@ app.get("/mixdrink/:id", function(req, res) {
     });
 });
 
-app.listen(3000, function() {
-    console.log("Starting drinkomatic node server on port 3000...\n");
+app.listen(80, function() {
+    console.log("Starting drinkomatic node server on standard HTTP port 80...\n");
 });
 
 //}
