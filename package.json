@@ -1,0 +1,28 @@
+{
+  "name": "node_server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.4",
+    "couchbase": "^2.4.5",
+    "express": "^4.16.3",
+    "fs": "0.0.1-security",
+    "fs-finder": "^1.8.1",
+    "mongo": "^0.1.0",
+    "mongodb": "^3.1.8",
+    "monk": "^6.0.6",
+    "nosql": "^6.1.0",
+    "serialport": "^6.1.1",
+    "uuid": "^3.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
