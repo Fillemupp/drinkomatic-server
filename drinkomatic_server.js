@@ -15,7 +15,8 @@ Opens http port at 80 for web browser user interface
 */
 
 var motorconfig = "motor_default";
-var serialpath = "/dev/ttyUSB0";
+var serialpath1 = "/dev/ttyUSB0";
+var serialpath2 = "/dev/ttyUSB1";
 var mongoUrl = "mongodb://127.0.0.1";
 
 var Finder = require('fs-finder');
@@ -65,7 +66,10 @@ app.use(Cors())
 app.use(Express.static('public'))
 
 var SerialPort = require('serialport');
-var sport = new SerialPort(serialpath, { baudRate: 115200 });
+console.log("Opening serial port 1");
+var sport1 = new SerialPort(serialpath1, { baudRate: 115200 });
+console.log("Opening serial port 2");
+var sport2 = new SerialPort(serialpath2, { baudRate: 115200 });
 
 app.get("/", function(req, res) {
     console.log("Get main page");
@@ -183,17 +187,26 @@ app.get("/mixdrink/:id", function(req, res) {
             console.log("Firmware command: " + command );
 
             // Send command to firmware and mix drinks
-            sport.write(command, function(err) {
+            sport1.write(command, function(err) {
               if (err) {
                 res.send([{"status":"error",
-                           "message":"Error on write: " + err.message}]);
+                           "message":"Error on write to sport1: " + err.message}]);
                 console.log("Error on write: " + err.message);
                 return;
               }
-
-              console.log("Command sent to firmware");
-              res.send([{"status":"ok"}]);
-              console.log("");
+		
+	      sport2.write(command, function(err) {
+	        if (err) {
+                  res.send([{"status":"error",
+                             "message":"Error on write to sport2: " + err.message}]);
+                  console.log("Error on write: " + err.message);
+                  return;
+                }
+		
+                console.log("Command sent to firmware");
+                res.send([{"status":"ok"}]);
+                console.log("");
+              });
             });
 
           });
