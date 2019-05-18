@@ -4,10 +4,11 @@
 drinkOmatic server by Jimmy Eiterjord
 
 Run with:
-sudo node drinkomatic-server
+sudo node drinkomatic_server
 
-Will connect to:
-drinkomatic-fw at serial port /dev/ttyUSB0
+Will connect to all serial ports /dev/ttyUSB*
+where it will communicate with drinkomatic_fw
+
 Mongo database at 127.0.0.1
 
 Opens http port at 80 for web browser user interface
@@ -15,8 +16,6 @@ Opens http port at 80 for web browser user interface
 */
 
 var motorconfig = "motor_default";
-var serialpath1 = "/dev/ttyUSB0";
-var serialpath2 = "/dev/ttyUSB1";
 var mongoUrl = "mongodb://127.0.0.1";
 
 var Finder = require('fs-finder');
@@ -66,10 +65,31 @@ app.use(Cors())
 app.use(Express.static('public'))
 
 var SerialPort = require('serialport');
-console.log("Opening serial port 1");
-var sport1 = new SerialPort(serialpath1, { baudRate: 115200 });
-console.log("Opening serial port 2");
-var sport2 = new SerialPort(serialpath2, { baudRate: 115200 });
+const Readline = require('@serialport/parser-readline')
+var sports = [];
+// List all serial ports and open those with the name ttyUSB
+SerialPort.list(function(err, ports) {
+  ports.forEach(function(port) {
+    portName = port['comName'];
+    // If port name includes ttyUSB then open it
+    if (portName.includes('ttyUSB')) {
+      console.log("Opening serial port " + portName);
+      // Open the port
+      sport = new SerialPort(portName, { baudRate: 115200 });
+      // Add line parser to port
+      sport.pipe(new Readline({ delimiter: '\n' })).on('data', parseRecData);
+      // Add port to list of ports
+      sports.push(sport);
+    }
+  });
+
+});
+
+function parseRecData(data) {
+  console.log("IN: " + data);
+}
+
+console.log("");
 
 app.get("/", function(req, res) {
     console.log("Get main page");
@@ -186,29 +206,19 @@ app.get("/mixdrink/:id", function(req, res) {
             command += "\n";
             console.log("Firmware command: " + command );
 
-            // Send command to firmware and mix drinks
-            sport1.write(command, function(err) {
-              if (err) {
-                res.send([{"status":"error",
-                           "message":"Error on write to sport1: " + err.message}]);
-                console.log("Error on write: " + err.message);
-                return;
-              }
-		
-	      sport2.write(command, function(err) {
-	        if (err) {
+            // Send command to firmware on all serial ports to mix drinks
+            sports.forEach(function(sport) {
+              sport.write(command, function(err) {
+                if (err) {
                   res.send([{"status":"error",
-                             "message":"Error on write to sport2: " + err.message}]);
-                  console.log("Error on write: " + err.message);
-                  return;
+                            "message":"Error on write to port: " + err.message}]);
+                            console.log("Error on write: " + err.message);
+                            return;
                 }
-		
                 console.log("Command sent to firmware");
-                res.send([{"status":"ok"}]);
-                console.log("");
-              });
-            });
-
+              })
+            })
+            res.send([{"status":"ok"}]);
           });
     });
 });
