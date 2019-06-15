@@ -110,10 +110,26 @@ app.get("/", function(req, res) {
         ajaxRequest.open('GET', '/mixdrink/' + drink);
         ajaxRequest.send();
       }
+      function stopmotors() {
+        var ajaxRequest = new XMLHttpRequest();
+        ajaxRequest.onreadystatechange = function(){
+          if(ajaxRequest.readyState == 4) {
+            if(ajaxRequest.status == 200) {
+              document.getElementById("status").innerHTML = ajaxRequest.responseText;
+            }
+          }
+        }
+        ajaxRequest.open('GET', '/stopmotors');
+        ajaxRequest.send();
+      }
       </script>
     </head><body><center>
-      <h1>drinkOmatic</h1>`;
-
+	<h1>
+	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' width='100' height='100'/>
+        drinkOmatic
+    	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' width='100' height='100'/>
+	</h1>
+	`;
     // Select collection from database
     var db = req.db;
     var collection = db.get('drinkomatic');
@@ -230,6 +246,28 @@ app.get("/mixdrink/:id", function(req, res) {
             res.send([{"status":"ok"}]);
           });
     });
+});
+
+app.get("/stopmotors", function(req, res) {
+    console.log("Get /stopmotors");
+
+    // Combine motor config with drink config
+    var command = "S\n";
+    console.log("Firmware command: " + command );
+    
+    // Send command to firmware on all serial ports to mix drinks
+    sports.forEach(function(sport) {
+        sport.write(command, function(err) {
+            if (err) {
+                res.send([{"status":"error",
+                           "message":"Error on write to port: " + err.message}]);
+                console.log("Error on write: " + err.message);
+                return;
+            }
+            console.log("Command sent to firmware");
+        })
+    })
+    res.send([{"status":"ok"}]);
 });
 
 app.listen(80, function() {
