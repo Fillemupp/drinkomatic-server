@@ -121,29 +121,38 @@ app.get("/", function(req, res) {
     // Get all drinks from database
     var query = { type: "drink" };
     collection.find({query},{},function(error,drinks){
-      if (error) {
-        return res.status(400).send({ "message": error });
-      }
+	if (error) {
+            return res.status(400).send({ "message": error });
+	}
 
-      // Loop through all available drinks
-      for(var i=0;i<drinks.length;i++){
-        var dname = drinks[i].name;
-        var dsysname = drinks[i].sysname;
-        var did = drinks[i]._id;;
-        console.log("id=" + did + " name=" + dname);
-        page += "<input type='image' ";
-        page += "src=\"img/" + dsysname + ".jpg\" width=\"500\" height=\"500\" "
-        page += "onclick='mixdrink(\"" + did + "\")' value='" + dname + "'/><br>"
-        page += "<h2>" + dname +"</h2>";
-        page += "<br/><br/>";
-      }
-      page += `
-          <br>
-          <br>
-          Firmware status: <div id='status'>Ready</div>
-        </center></body></html>`;
-      res.send(page);
-      console.log("");
+	cols = 0;
+	page += "<table><tr>";
+	// Loop through all available drinks
+	
+	for(var i=0;i<drinks.length;i++){
+            var dname = drinks[i].name;
+            var dsysname = drinks[i].sysname;
+            var did = drinks[i]._id;;
+            console.log("id=" + did + " name=" + dname);
+            page += "<td><input type='image' ";
+            page += "src=\"img/" + dsysname + ".jpg\" width=\"500\" height=\"500\" "
+            page += "onclick='mixdrink(\"" + did + "\")' value='" + dname + "'/><br>"
+            page += "<center><h2>" + dname +"</h2></center>";
+            page += "</td>";
+	    if (cols++ == 2) {
+		page += "</tr><tr>";
+		cols = 0;
+	    }	    
+	}
+	
+	page += `
+            </table>
+	    <br>
+            <br>
+            Firmware status: <div id='status'>Ready</div>
+            </center></body></html>`;
+	res.send(page);
+	console.log("");
     });
 });
 
