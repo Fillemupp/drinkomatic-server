@@ -166,10 +166,121 @@ app.get("/", function(req, res) {
 	    <br>
             <br>
             Firmware status: <div id='status'>Ready</div>
+	    <a href="mixers">Mixers</a>
             </center></body></html>`;
 	res.send(page);
 	console.log("");
     });
+});
+
+app.get("/mixers", function(req, res) {
+    console.log("Get mixers page");
+
+    var page = `
+      <html><head>
+      <meta name="viewport" content="width=500, initial-scale=0.7, maximum-scale=0.7, minimum-scale=0.7">
+      <script>
+	function runmotor(motor,steps) {
+        var ajaxRequest = new XMLHttpRequest();
+        ajaxRequest.onreadystatechange = function(){
+          if(ajaxRequest.readyState == 4) {
+            if(ajaxRequest.status == 200) {
+              document.getElementById("status").innerHTML = ajaxRequest.responseText;
+            }
+          }
+        }
+        ajaxRequest.open('GET', '/runmotor/' + motor + '/' + steps);
+        ajaxRequest.send();
+      }
+      function stopmotors() {
+        var ajaxRequest = new XMLHttpRequest();
+        ajaxRequest.onreadystatechange = function(){
+          if(ajaxRequest.readyState == 4) {
+            if(ajaxRequest.status == 200) {
+              document.getElementById("status").innerHTML = ajaxRequest.responseText;
+            }
+          }
+        }
+        ajaxRequest.open('GET', '/stopmotors');
+        ajaxRequest.send();
+      }
+      </script>
+    </head><body><center>
+	<h1>
+	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' width='100' height='100'/>
+        drinkOmatic - mixers
+    	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' width='100' height='100'/>
+	</h1>
+	<table>
+	<tr><th>#</th><th>Mixer</th><th>steps/cl</th><th>Control</th></tr>
+	`;
+
+    // Select motors from database
+    var db = req.db;
+    var collection = db.get('drinkomatic');
+    var query = { type: "motorconfig" };
+    collection.find({query},{},function(err,motorspecs){
+	if (err) throw err;
+	console.log("Available motors:");
+        for(key in motorspecs[0].motors){
+            var motor = motorspecs[0].motors[key].motor;
+            var mixer = motorspecs[0].motors[key].mixer;
+            var stepspercl = motorspecs[0].motors[key].stepspercl;
+            console.log("motor=" + motor +
+			" mixer=" + mixer +
+			" stepspercl=" + stepspercl);
+	    page += "<tr><td>"
+		+ motor + "</td><td>"
+		+ mixer + "</td><td>"
+		+ stepspercl + "</td><td>"
+		+ "<input type='image' src='img/buttonbackward.png' onclick='runmotor(" + motor + ",-" + stepspercl + ")' width='50' height='50'>"
+		+ "&nbsp;&nbsp;&nbsp"
+		+ "<input type='image' src='img/buttonforward.png' onclick='runmotor(" + motor + "," + stepspercl + ")' width='50' height='50'>"
+		+ "&nbsp;&nbsp;&nbsp"
+		+ "<input type='image' src='img/buttonforward.png' onclick='runmotor(" + motor + "," + stepspercl*10 + ")' width='50' height='50'>"
+		+ "</td></tr>";	    
+        }
+	page += `
+  	   </table>
+	    <br>
+            <br>
+            Firmware status: <div id='status'>Ready</div>
+            </center></body></html>`;
+	res.send(page);
+	console.log("");
+    });
+});
+
+app.get("/runmotor/:motor/:steps", function(req, res) {
+    console.log("Get /runmotor motor=" + req.params.motor + " steps=" + req.params.steps);
+
+    var motor = req.params.motor;
+    var steps = req.params.steps;
+
+    // Combine motor config with drink config
+    var command = "M";
+    var statusok = true;
+    if (steps > 0) {	
+        command += motor + ":" + steps + ":800";
+    } else {
+        command += motor + ":" + -steps + ":-800";
+    }
+    command += "\n";
+    console.log("Firmware command: " + command );
+
+    // Send command to firmware on all serial ports to mix drinks
+    sports.forEach(function(sport) {
+        sport.write(command, function(err) {
+            if (err) {
+                res.send([{"status":"error",
+                           "message":"Error on write to port: " + err.message}]);
+                console.log("Error on write: " + err.message);
+                return;
+            }
+            console.log("Command sent to firmware");
+        })
+    })
+    res.send([{"status":"ok"}]);
 });
 
 app.get("/mixdrink/:id", function(req, res) {
