@@ -86,7 +86,25 @@ SerialPort.list(function(err, ports) {
 });
 
 function parseRecData(data) {
-  console.log("IN: " + data);
+    console.log("IN: " + data);
+    
+    // Forward progress output as command to all serial controllers
+    // FIX: This will also send back the command to its originating controller
+    if (data[0] == 'P') {
+	command = data + "\n";
+	sports.forEach(function(sport) {
+            sport.write(command, function(err) {
+                if (err) {
+                    res.send([{"status":"error",
+                               "message":"Error on write to port: " + err.message}]);
+                    console.log("Error on write: " + err.message);
+                    return;
+                }
+                console.log("Command sent to firmware");
+            })
+        })
+    }
+	
 }
 
 console.log("");
