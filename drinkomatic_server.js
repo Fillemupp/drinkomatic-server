@@ -91,7 +91,7 @@ function parseRecData(data) {
     // Forward progress output as command to all serial controllers
     // FIX: This will also send back the command to its originating controller
     if (data[0] == 'P') {
-	command = data + "\n";
+	command = data + '\n';
 	sports.forEach(function(sport) {
             sport.write(command, function(err) {
                 if (err) {
@@ -104,7 +104,7 @@ function parseRecData(data) {
             })
         })
     }
-	
+
 }
 
 console.log("");
