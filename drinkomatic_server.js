@@ -158,12 +158,16 @@ app.get("/", function(req, res) {
             var dname = drinks[i].name;
             var dsysname = drinks[i].sysname;
             var did = drinks[i]._id;;
+	    var dalcomin = drinks[i].alcomin;
+	    var dalcomax = drinks[i].alcomax;	    
             console.log("id=" + did + " name=" + dname);
             page += "<td><input type='image' ";
+	    page += " id='drink" + did + "' ";
+            page += " class='drink' data-alcomin='" + dalcomin + "' data-alcomax='" + dalcomax + "' data-enabled='true' ";
             page += "src=\"img/" + dsysname + ".jpg\" width=\"500\" height=\"500\" "
             page += "onclick='mixdrink(\"" + did + "\")' value='" + dname + "'/><br>"
             page += "<center><h2>" + dname +"</h2></center>";
-            page += "</td>";
+            page += "</td>\n";
 	    if (cols++ == 2) {
 		page += "</tr><tr>";
 		cols = 0;
