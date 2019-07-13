@@ -251,11 +251,14 @@ app.get("/mixers", function(req, res) {
 		+ motor + "</td><td>"
 		+ mixer + "</td><td>"
 		+ stepspercl + "</td><td>"
-		+ "<input type='image' src='img/buttonbackward.png' onclick='runmotor(" + motor + ",-" + stepspercl + ")' width='50' height='50'>"
+		+ "<input type='image' src='img/buttonbackward.png' onclick='runmotor("
+		+ motor + ",-" + stepspercl + ")' width='50' height='50'>"
 		+ "&nbsp;&nbsp;&nbsp"
-		+ "<input type='image' src='img/buttonforward.png' onclick='runmotor(" + motor + "," + stepspercl + ")' width='50' height='50'>"
+		+ "<input type='image' src='img/buttonforward.png' onclick='runmotor("
+		+ motor + "," + stepspercl + ")' width='50' height='50'>"
 		+ "&nbsp;&nbsp;&nbsp"
-		+ "<input type='image' src='img/buttonforward.png' onclick='runmotor(" + motor + "," + stepspercl*10 + ")' width='50' height='50'>"
+		+ "<input type='image' src='img/buttonforward.png' onclick='runmotor("
+		+ motor + "," + stepspercl*10 + ")' width='50' height='50'>"
 		+ "</td></tr>";	    
         }
 	page += `
