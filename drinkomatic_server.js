@@ -34,6 +34,10 @@ var Cors = require("cors");
 var Express = require("express");
 var app = Express();
 
+var statusAlcoMeter = -1;
+var statusRFID = "NONE";
+var statusProgress = -1;
+
 var query = { type: "motorconfig" };
 collection.find({query},{},function(err,result){
   if (err) throw err;
@@ -90,7 +94,8 @@ function parseRecData(data) {
     
     // Forward progress output as command to all serial controllers
     // FIX: This will also send back the command to its originating controller
-    if (data[0] == 'P') {
+    if (data.substring(0,2) == 'P:') {
+	statusProgress = parseInt(data.substring(2));
 	command = data + '\n';
 	sports.forEach(function(sport) {
             sport.write(command, function(err) {
@@ -105,6 +110,16 @@ function parseRecData(data) {
         })
     }
 
+    // Grab alco meter readings
+    if (data.substring(0,2) == 'A:') {
+	statusAlcoMeter = parseInt(data.substring(2));
+    }
+
+    // Grab RFID readings
+    if (data.substring(0,2) == 'R:') {
+	statusRFID = (data.substring(2)).replace('\r','');
+    }    
+    
 }
 
 console.log("");
@@ -114,7 +129,7 @@ app.get("/", function(req, res) {
 
     var page = `
     <html><head>
-      <meta name="viewport" content="width=500, initial-scale=0.7, maximum-scale=0.7, minimum-scale=0.7">
+      <meta name="viewport" content="width=500, initial-scale=0.7, maximum-scale=0.7, minimum-scale=0.7"/>
       <script>
       function mixdrink(drink) {
         var ajaxRequest = new XMLHttpRequest();
@@ -140,6 +155,21 @@ app.get("/", function(req, res) {
         ajaxRequest.open('GET', '/stopmotors');
         ajaxRequest.send();
       }
+    function getstatus() {
+      var ajaxRequest = new XMLHttpRequest();
+      ajaxRequest.onreadystatechange = function(){
+        if(ajaxRequest.readyState == 4) {
+          if(ajaxRequest.status == 200) {
+            document.getElementById("status").innerHTML = ajaxRequest.responseText;
+          }
+        }
+      }
+      ajaxRequest.open('GET', '/getstatus');
+      ajaxRequest.send();
+    }
+    window.onload = function(){
+	var gsid = setInterval(getstatus,100);
+    }
       </script>
     </head><body><center>
 	<h1>
@@ -400,6 +430,18 @@ app.get("/stopmotors", function(req, res) {
         })
     })
     res.send([{"status":"ok"}]);
+});
+
+app.get("/getstatus", function(req, res) {
+
+    console.log("Get /getstatus alcometer:" + statusAlcoMeter + " rfid:" + statusRFID + " progress:" + statusProgress);
+    res.send([{
+	"status":"ok",
+	"alcometer":statusAlcoMeter,
+	"rfid":statusRFID,
+	"progress":statusProgress
+    }]);
+
 });
 
 app.listen(80, function() {
