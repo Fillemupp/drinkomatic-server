@@ -130,59 +130,7 @@ app.get("/", function(req, res) {
     var page = `
     <html><head>
       <meta name="viewport" content="width=500, initial-scale=0.7, maximum-scale=0.7, minimum-scale=0.7"/>
-      <script>
-      function mixdrink(drink) {
-        var ajaxRequest = new XMLHttpRequest();
-        ajaxRequest.onreadystatechange = function(){
-          if(ajaxRequest.readyState == 4) {
-            if(ajaxRequest.status == 200) {
-              document.getElementById("status").innerHTML = ajaxRequest.responseText;
-            }
-          }
-        }
-        ajaxRequest.open('GET', '/mixdrink/' + drink);
-        ajaxRequest.send();
-      }
-      function stopmotors() {
-        var ajaxRequest = new XMLHttpRequest();
-        ajaxRequest.onreadystatechange = function(){
-          if(ajaxRequest.readyState == 4) {
-            if(ajaxRequest.status == 200) {
-              document.getElementById("status").innerHTML = ajaxRequest.responseText;
-            }
-          }
-        }
-        ajaxRequest.open('GET', '/stopmotors');
-        ajaxRequest.send();
-      }
-    function getstatus() {
-	var alcometerToPromilleOffset = 120;
-	var alcometerToPromilleFactor = 0.001;    
-      var ajaxRequest = new XMLHttpRequest();
-      ajaxRequest.onreadystatechange = function(){
-        if(ajaxRequest.readyState == 4) {
-          if(ajaxRequest.status == 200) {
-              document.getElementById("status").innerHTML = ajaxRequest.responseText;
-	      var ajaxData = JSON.parse(ajaxRequest.responseText);
-	      alcometer = ajaxData[0].alcometer;
-	      if (alcometer > alcometerToPromilleOffset) {
-		  alcometerPromille = Math.floor((alcometer - alcometerToPromilleOffset) * alcometerToPromilleFactor * 1000) / 1000;
-	      } else {
-		  alcometerPromille = 0;
-	      }
-	      document.getElementById("alcometer").innerHTML = alcometerPromille;
-	      document.getElementById("rfid").innerHTML = ajaxData[0].rfid;
-	      document.getElementById("progress").innerHTML = ajaxData[0].progress;	      
-          }
-        }
-      }
-      ajaxRequest.open('GET', '/getstatus');
-      ajaxRequest.send();
-    }
-    window.onload = function(){
-	var gsid = setInterval(getstatus,100);
-    }
-      </script>
+      <script type="text/javascript" src="js/ajaxcom.js"></script>
     </head><body><center>
 	<h1>
 	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' width='100' height='100'/>
@@ -240,33 +188,8 @@ app.get("/mixers", function(req, res) {
     var page = `
       <html><head>
       <meta name="viewport" content="width=500, initial-scale=0.7, maximum-scale=0.7, minimum-scale=0.7">
-      <script>
-	function runmotor(motor,steps) {
-        var ajaxRequest = new XMLHttpRequest();
-        ajaxRequest.onreadystatechange = function(){
-          if(ajaxRequest.readyState == 4) {
-            if(ajaxRequest.status == 200) {
-		document.getElementById("status").innerHTML = ajaxRequest.responseText;		
-            }
-          }
-        }
-        ajaxRequest.open('GET', '/runmotor/' + motor + '/' + steps);
-        ajaxRequest.send();
-      }
-      function stopmotors() {
-        var ajaxRequest = new XMLHttpRequest();
-        ajaxRequest.onreadystatechange = function(){
-          if(ajaxRequest.readyState == 4) {
-            if(ajaxRequest.status == 200) {
-              document.getElementById("status").innerHTML = ajaxRequest.responseText;
-            }
-          }
-        }
-        ajaxRequest.open('GET', '/stopmotors');
-        ajaxRequest.send();
-      }
-      </script>
-    </head><body><center>
+      <script type="text/javascript" src="js/ajaxcom.js"></script>
+      </head><body><center>
 	<h1>
 	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' width='100' height='100'/>
         drinkOmatic - mixers
