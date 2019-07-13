@@ -156,11 +156,23 @@ app.get("/", function(req, res) {
         ajaxRequest.send();
       }
     function getstatus() {
+	var alcometerToPromilleOffset = 120;
+	var alcometerToPromilleFactor = 0.001;    
       var ajaxRequest = new XMLHttpRequest();
       ajaxRequest.onreadystatechange = function(){
         if(ajaxRequest.readyState == 4) {
           if(ajaxRequest.status == 200) {
-            document.getElementById("status").innerHTML = ajaxRequest.responseText;
+              document.getElementById("status").innerHTML = ajaxRequest.responseText;
+	      var ajaxData = JSON.parse(ajaxRequest.responseText);
+	      alcometer = ajaxData[0].alcometer;
+	      if (alcometer > alcometerToPromilleOffset) {
+		  alcometerPromille = Math.floor((alcometer - alcometerToPromilleOffset) * alcometerToPromilleFactor * 1000) / 1000;
+	      } else {
+		  alcometerPromille = 0;
+	      }
+	      document.getElementById("alcometer").innerHTML = alcometerPromille;
+	      document.getElementById("rfid").innerHTML = ajaxData[0].rfid;
+	      document.getElementById("progress").innerHTML = ajaxData[0].progress;	      
           }
         }
       }
@@ -177,6 +189,7 @@ app.get("/", function(req, res) {
         drinkOmatic
     	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' width='100' height='100'/>
 	</h1>
+        Alcometer: <span id='alcometer'></span> RFID: <span id='rfid'></span> Progress: <span id='progress'></span>    
 	`;
     // Select collection from database
     var db = req.db;
@@ -233,7 +246,7 @@ app.get("/mixers", function(req, res) {
         ajaxRequest.onreadystatechange = function(){
           if(ajaxRequest.readyState == 4) {
             if(ajaxRequest.status == 200) {
-              document.getElementById("status").innerHTML = ajaxRequest.responseText;
+		document.getElementById("status").innerHTML = ajaxRequest.responseText;		
             }
           }
         }
