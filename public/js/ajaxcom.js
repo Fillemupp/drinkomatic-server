@@ -3,6 +3,7 @@ var alcometerToPromilleOffset = 120;
 var alcometerToPromilleFactor = 0.05;    
 var alcometerPromille = 0.0;
 var alcometerRaw = 0;
+var oldstatus = '';
 
 function mixdrink(drink) {
     // Check that this drink is enabled to be selected
@@ -14,6 +15,7 @@ function mixdrink(drink) {
     ajaxRequest.onreadystatechange = function(){
         if(ajaxRequest.readyState == 4) {
             if(ajaxRequest.status == 200) {
+		oldstatus = ajaxRequest.responseText;
 		document.getElementById("status").innerHTML = ajaxRequest.responseText;
             }
         }
@@ -27,6 +29,7 @@ function stopmotors() {
     ajaxRequest.onreadystatechange = function(){
         if(ajaxRequest.readyState == 4) {
             if(ajaxRequest.status == 200) {
+		oldstatus = ajaxRequest.responseText;
 		document.getElementById("status").innerHTML = ajaxRequest.responseText;
             }
         }
@@ -76,12 +79,15 @@ function getstatus() {
     ajaxRequest.onreadystatechange = function(){
         if(ajaxRequest.readyState == 4) {
             if(ajaxRequest.status == 200) {
-		document.getElementById("status").innerHTML = ajaxRequest.responseText;		
-		var ajaxData = JSON.parse(ajaxRequest.responseText);
-		updateAlcometer(ajaxData[0].alcometer);
-		document.getElementById("rfid").innerHTML = ajaxData[0].rfid;
-		document.getElementById("progress").innerHTML = ajaxData[0].progress;	      
-            }
+		if (ajaxRequest.responseText != oldstatus) {
+		    oldstatus = ajaxRequest.responseText;
+		    document.getElementById("status").innerHTML = ajaxRequest.responseText;		
+		    var ajaxData = JSON.parse(ajaxRequest.responseText);
+		    updateAlcometer(ajaxData[0].alcometer);
+		    document.getElementById("rfid").innerHTML = ajaxData[0].rfid;
+		    document.getElementById("progress").innerHTML = ajaxData[0].progress;	      
+		}
+	    }
         }
     }
     ajaxRequest.open('GET', '/getstatus');
@@ -97,6 +103,7 @@ function runmotor(motor,steps) {
     ajaxRequest.onreadystatechange = function(){
         if(ajaxRequest.readyState == 4) {
             if(ajaxRequest.status == 200) {
+		oldstatus = ajaxRequest.responseText;
 		document.getElementById("status").innerHTML = ajaxRequest.responseText;		
             }
         }
