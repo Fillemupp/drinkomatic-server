@@ -126,17 +126,16 @@ console.log("");
 
 app.get("/", function(req, res) {
     console.log("Get main page");
-
     var page = `
     <html><head>
-      <meta name="viewport" content="width=500, initial-scale=0.7, maximum-scale=0.7, minimum-scale=0.7"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"/>
 	<script type="text/javascript" src="js/ajaxcom.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/main.css"/>
     </head><body><center>
 	<h1>
-	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' width='100' height='100'/>
+	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' class='emergencystop'/>
         drinkOmatic
-    	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' width='100' height='100'/>
+    	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' class='emergencystop'/>
 	</h1>
         Alcometer: <span id='alcometer'></span> RFID: <span id='rfid'></span> Progress: <span id='progress'></span>    
 	`;
@@ -152,7 +151,7 @@ app.get("/", function(req, res) {
 	}
 
 	cols = 0;
-	page += "<table><tr>";
+	page += "<table class='drinktable'><tr>";
 	// Loop through all available drinks
 	
 	for(var i=0;i<drinks.length;i++){
@@ -162,13 +161,13 @@ app.get("/", function(req, res) {
 	    var dalcomin = drinks[i].alcomin;
 	    var dalcomax = drinks[i].alcomax;	    
             console.log("id=" + did + " name=" + dname);
-            page += "<td><div class='parent'>";
+            page += "<td class='drinkitem'><div class='parent'>";
 	    page += "<img class='lock' src='img/locked.png'>";
 	    page += "<input type='image' id='drink" + did + "' ";
             page += " class='drink' data-alcomin='" + dalcomin + "' data-alcomax='" + dalcomax + "' data-enabled='true' ";
             page += "src=\"img/" + dsysname + ".jpg\" ";
             page += "onclick='mixdrink(\"" + did + "\")' value='" + dname + "'/>";
-            page += "</div><center><h2>" + dname +"</h2></center>";
+            page += "</div>" + dname;
             page += "</td>\n";
 	    if (cols++ == 2) {
 		page += "</tr><tr>";
@@ -195,7 +194,7 @@ app.get("/mixers", function(req, res) {
       <html><head>
       <meta name="viewport" content="width=500, initial-scale=0.7, maximum-scale=0.7, minimum-scale=0.7">
       <script type="text/javascript" src="js/ajaxcom.js"></script>
-      </head><body><center>
+      </head><body>
 	<h1>
 	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' width='100' height='100'/>
         drinkOmatic - mixers
@@ -238,7 +237,7 @@ app.get("/mixers", function(req, res) {
 	    <br>
             <br>
             Firmware status: <div id='status'>Ready</div>
-            </center></body></html>`;
+            </body></html>`;
 	res.send(page);
 	console.log("");
     });
