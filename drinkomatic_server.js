@@ -130,7 +130,8 @@ app.get("/", function(req, res) {
     var page = `
     <html><head>
       <meta name="viewport" content="width=500, initial-scale=0.7, maximum-scale=0.7, minimum-scale=0.7"/>
-      <script type="text/javascript" src="js/ajaxcom.js"></script>
+	<script type="text/javascript" src="js/ajaxcom.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/main.css"/>
     </head><body><center>
 	<h1>
 	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' width='100' height='100'/>
@@ -161,12 +162,13 @@ app.get("/", function(req, res) {
 	    var dalcomin = drinks[i].alcomin;
 	    var dalcomax = drinks[i].alcomax;	    
             console.log("id=" + did + " name=" + dname);
-            page += "<td><input type='image' ";
-	    page += " id='drink" + did + "' ";
+            page += "<td><div class='parent'>";
+	    page += "<img class='lock' src='img/locked.png'>";
+	    page += "<input type='image' id='drink" + did + "' ";
             page += " class='drink' data-alcomin='" + dalcomin + "' data-alcomax='" + dalcomax + "' data-enabled='true' ";
-            page += "src=\"img/" + dsysname + ".jpg\" width=\"500\" height=\"500\" "
-            page += "onclick='mixdrink(\"" + did + "\")' value='" + dname + "'/><br>"
-            page += "<center><h2>" + dname +"</h2></center>";
+            page += "src=\"img/" + dsysname + ".jpg\" ";
+            page += "onclick='mixdrink(\"" + did + "\")' value='" + dname + "'/>";
+            page += "</div><center><h2>" + dname +"</h2></center>";
             page += "</td>\n";
 	    if (cols++ == 2) {
 		page += "</tr><tr>";

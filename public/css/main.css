@@ -1,0 +1,20 @@
+
+.parent {
+    position: relative;
+    top: 0;
+    left: 0;
+}
+.drink {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 500;
+    height: 500;
+}
+.lock {
+    position: absolute;
+    top: 150;
+    left: 150;
+    width: 200;
+    height: 200;
+}
