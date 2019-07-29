@@ -197,7 +197,7 @@ app.get("/", function(req, res) {
     	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' class='emergencystop'/>
 	</h1>
         Alcometer: <span id='alcometer'></span>, RFID: <span id='userRFID'></span>,
-        Name: <input type='text' length='20' id='userName' onenter='updateUserName()'></input>
+        Name: <input type='text' length='20' id='userName' onkeypress='updateUserNameOnEnter(event)'></input>
         <input type='button' value='Send' onclick='updateUserName()'/>,
         Progress: <span id='progress'></span>
 	`;

@@ -116,6 +116,13 @@ function updateUserName() {
     ajaxRequest.send();    
 }
 
+// updateUserName on Enter keypress
+function updateUserNameOnEnter(event) {
+    if (event.keyCode === 13) {
+	updateUserName();
+    }
+};
+
 function runmotor(motor,steps) {
     var ajaxRequest = new XMLHttpRequest();
     ajaxRequest.onreadystatechange = function(){
