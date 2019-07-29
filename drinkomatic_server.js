@@ -36,6 +36,9 @@ var app = Express();
 
 var statusAlcoMeter = -1;
 var statusRFID = "NONE";
+var statusUser = {type: 'user',
+		  rfid: statusRFID,
+		  name: ''};
 var statusProgress = -1;
 
 var query = { type: "motorconfig" };
@@ -91,7 +94,7 @@ SerialPort.list(function(err, ports) {
 
 function parseRecData(data) {
     console.log("IN: " + data);
-    
+
     // Forward progress output as command to all serial controllers
     // FIX: This will also send back the command to its originating controller
     if (data.substring(0,2) == 'P:') {
@@ -117,18 +120,74 @@ function parseRecData(data) {
 
     // Grab RFID readings
     if (data.substring(0,2) == 'R:') {
-	statusRFID = (data.substring(2)).replace('\r','');
-    }    
+	newRFID = (data.substring(2)).replace('\r','');
+	// Update RFID if this number is different from previous
+	if (statusRFID != newRFID) {
+            statusRFID = newRFID;
+            if (statusRFID != 'NONE') {
+		// Select collection from database
+		var collection = db.get('drinkomatic');
+		// Get user from database
+		var query = { type: 'user',
+			      rfid: statusRFID };
+		collection.find({query},{},function(error,userdata){
+		    if (error) {
+			console.log("Connection error to database");
+			return;
+		    }
+		    if (userdata.length > 0) {
+			var uname = userdata[0].name;
+			console.log("RFID tag " + statusRFID
+				    + " found in database. User name: " + uname);
+			statusUser = userdata[0];
+		    } else {
+			console.log("RFID tag " + statusRFID
+				    + " not found in database. Inserting!");
+			var collection = db.get('drinkomatic');
+			statusUser = {type: 'user',
+				      rfid: statusRFID,
+				      name: 'New'};
+			collection.insert(statusUser);
+		    }
+		});
+            } else {
+		// If RFID code NONE was returned then clear the user name
+		statusUser = {type: 'user',
+			      rfid: 'NONE',
+			      name: ''};
+            }
+	}
+    }
     
 }
 
 console.log("");
 
+app.get("/updateusername/:name", function(req, res) {
+    var uname = req.params.name;
+    console.log("Get /updateusername name=" + uname);
+    // Select collection from database
+    var db = req.db;
+    var collection = db.get('drinkomatic');
+
+    // Update user with current RFID to new name
+    var query = { type: 'user',
+		  rfid: statusRFID };    
+    collection.update(query,{ $set: {name: uname}},function(error){
+	if (error) {
+	    console.log("Error: " + error);
+            return res.status(400).send({ "message": error });
+	};
+	statusUser.name = uname;
+    });
+});
+
 app.get("/", function(req, res) {
     console.log("Get main page");
     var page = `
     <html><head>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, 
+              maximum-scale=1.0, minimum-scale=1.0"/>
 	<script type="text/javascript" src="js/ajaxcom.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/main.css"/>
     </head><body><center>
@@ -137,7 +196,10 @@ app.get("/", function(req, res) {
         drinkOmatic
     	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' class='emergencystop'/>
 	</h1>
-        Alcometer: <span id='alcometer'></span> RFID: <span id='rfid'></span> Progress: <span id='progress'></span>    
+        Alcometer: <span id='alcometer'></span>, RFID: <span id='userRFID'></span>,
+        Name: <input type='text' length='20' id='userName' onenter='updateUserName()'></input>
+        <input type='button' value='Send' onclick='updateUserName()'/>,
+        Progress: <span id='progress'></span>
 	`;
     // Select collection from database
     var db = req.db;
@@ -153,13 +215,13 @@ app.get("/", function(req, res) {
 	cols = 0;
 	page += "<table class='drinktable'><tr>";
 	// Loop through all available drinks
-	
+
 	for(var i=0;i<drinks.length;i++){
             var dname = drinks[i].name;
             var dsysname = drinks[i].sysname;
             var did = drinks[i]._id;;
 	    var dalcomin = drinks[i].alcomin;
-	    var dalcomax = drinks[i].alcomax;	    
+	    var dalcomax = drinks[i].alcomax;
             console.log("id=" + did + " name=" + dname);
             page += "<td class='drinkitem'><div class='parent'>";
 	    page += "<img class='lock' src='img/locked.png'>";
@@ -172,9 +234,9 @@ app.get("/", function(req, res) {
 	    if (cols++ == 2) {
 		page += "</tr><tr>";
 		cols = 0;
-	    }	    
+	    }
 	}
-	
+
 	page += `
             </table>
 	    <br>
@@ -230,7 +292,7 @@ app.get("/mixers", function(req, res) {
 		+ "&nbsp;&nbsp;&nbsp"
 		+ "<input type='image' src='img/buttonforward.png' onclick='runmotor("
 		+ motor + "," + stepspercl*10 + ")' width='50' height='50'>"
-		+ "</td></tr>";	    
+		+ "</td></tr>";
         }
 	page += `
   	   </table>
@@ -252,7 +314,7 @@ app.get("/runmotor/:motor/:steps", function(req, res) {
     // Combine motor config with drink config
     var command = "M";
     var statusok = true;
-    if (steps > 0) {	
+    if (steps > 0) {
         command += motor + ":" + steps + ":800";
     } else {
         command += motor + ":" + -steps + ":-800";
@@ -357,7 +419,7 @@ app.get("/stopmotors", function(req, res) {
     // Combine motor config with drink config
     var command = "S\n";
     console.log("Firmware command: " + command );
-    
+
     // Send command to firmware on all serial ports to mix drinks
     sports.forEach(function(sport) {
         sport.write(command, function(err) {
@@ -375,11 +437,14 @@ app.get("/stopmotors", function(req, res) {
 
 app.get("/getstatus", function(req, res) {
 
-    console.log("Get /getstatus alcometer:" + statusAlcoMeter + " rfid:" + statusRFID + " progress:" + statusProgress);
+    console.log("Get /getstatus alcometer:" + statusAlcoMeter
+		+ " rfid:" + statusRFID
+		+ " progress:" + statusProgress
+		+ " name: " + statusUser.name);
     res.send([{
 	"status":"ok",
 	"alcometer":statusAlcoMeter,
-	"rfid":statusRFID,
+	"user":statusUser,
 	"progress":statusProgress
     }]);
 

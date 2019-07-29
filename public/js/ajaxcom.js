@@ -84,7 +84,10 @@ function getstatus() {
 		    document.getElementById("status").innerHTML = ajaxRequest.responseText;		
 		    var ajaxData = JSON.parse(ajaxRequest.responseText);
 		    updateAlcometer(ajaxData[0].alcometer);
-		    document.getElementById("rfid").innerHTML = ajaxData[0].rfid;
+		    var user = ajaxData[0].user;
+		    document.getElementById("userRFID").innerHTML = user.rfid;
+		    document.getElementById("userName").innerHTML = user.name;
+		    document.getElementById("userName").value = user.name;
 		    document.getElementById("progress").innerHTML = ajaxData[0].progress;	      
 		}
 	    }
@@ -96,6 +99,21 @@ function getstatus() {
 
 window.onload = function(){
     var gsid = setInterval(getstatus,100);
+}
+
+function updateUserName() {
+    var ajaxRequest = new XMLHttpRequest();
+    var userName = document.getElementById("userName").value;
+    ajaxRequest.onreadystatechange = function(){
+        if(ajaxRequest.readyState == 4) {
+            if(ajaxRequest.status == 200) {
+		oldstatus = ajaxRequest.responseText;
+		document.getElementById("status").innerHTML = ajaxRequest.responseText;
+            }
+        }
+    }
+    ajaxRequest.open('GET', '/updateusername/' + userName);
+    ajaxRequest.send();    
 }
 
 function runmotor(motor,steps) {
