@@ -146,7 +146,8 @@ function parseRecData(data) {
 			var collection = db.get('drinkomatic');
 			statusUser = {type: 'user',
 				      rfid: statusRFID,
-				      name: 'New'};
+				      name: 'New',
+				      date: Date()};
 			collection.insert(statusUser);
 		    }
 		});
@@ -196,6 +197,7 @@ app.get("/", function(req, res) {
         drinkOmatic
     	<input type='image' src='img/emergencystop.jpg' onclick='stopmotors()' class='emergencystop'/>
 	</h1>
+	<a href="/userdrinks">Statistics</a><br>
         Alcometer: <span id='alcometer'></span>, RFID: <span id='userRFID'></span>,
         Name: <input type='text' length='20' id='userName' onkeypress='updateUserNameOnEnter(event)'></input>
         <input type='button' value='Send' onclick='updateUserName()'/>,
@@ -305,6 +307,58 @@ app.get("/mixers", function(req, res) {
     });
 });
 
+app.get("/userdrinks", function(req, res) {
+    console.log("Get userdrinks page");
+
+    var page = `
+	<html><head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, 
+              maximum-scale=1.0, minimum-scale=1.0"/>
+	<script type="text/javascript" src="js/ajaxcom.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/main.css"/>
+	</head><body>
+	<h1>Drink statistics</h1>
+	<a href="/">Back</a><br>
+	`;
+
+    // Select users and drinks from database
+    var db = req.db;
+    var collection = db.get('drinkomatic');
+    var qusers = { type: 'user' };
+    collection.find(qusers,{},function(err,users){
+	if (err) throw err;
+	var quserdrinks = { type: "userdrink" };
+	collection.find(quserdrinks,{},function(err,userdrinks){
+	    if (err) throw err;
+	    var qdrinks = { type: "drink" };
+	    collection.find(qdrinks,{},function(err,drinks){
+		if (err) throw err;
+		// Place drink data in map
+		var drinkMap = new Map();
+		for(var di=0;di<drinks.length;di++){
+		    drinkMap.set(drinks[di]._id.toString(),drinks[di]);
+		}
+		// Loop through users and drinks. FIX: This is O(N*M), could be O(N+M)
+		for(var ui=0;ui<users.length;ui++){
+		    page += users[ui].name + ':  ';		
+		    for(var udi=0;udi<userdrinks.length;udi++){
+			if (userdrinks[udi].user_rfid == users[ui].rfid) {
+			    var drinkId = userdrinks[udi].drink_id;
+			    drink = drinkMap.get(drinkId);
+			    drinkName = drink.name;
+			    drinkSysname = drink.sysname;
+			    page += "<img src=\"img/" + drinkSysname + ".jpg\" width=\"50\" height=\"50\">";
+			}
+		    }
+		    page += '<br>';
+		}
+		page += `</body></html>`;
+		res.send(page);
+	    });
+	});
+    });
+});
+
 app.get("/runmotor/:motor/:steps", function(req, res) {
     console.log("Get /runmotor motor=" + req.params.motor + " steps=" + req.params.steps);
 
@@ -408,6 +462,22 @@ app.get("/mixdrink/:id", function(req, res) {
                 console.log("Command sent to firmware");
               })
             })
+
+	    // Add userdrink to database if RFID is known
+	    if (statusRFID != 'NONE') {
+		console.log("Adding userdrink to database. RFID="+statusRFID)
+		var collection = db.get('drinkomatic');
+		userDrink = {type: 'userdrink',
+			     user_rfid: statusRFID,
+			     user_name: statusUser.name,
+			     alcometer: statusAlcoMeter,
+			     drink_name: dname,
+			     drink_id: req.params.id,
+			     date: Date()};
+		collection.insert(userDrink);
+	    }
+
+	    
             res.send([{"status":"ok"}]);
           });
     });
