@@ -145,36 +145,32 @@ if (process.argv[2] != 'clear') {
     process.exit();
 }
 
+console.log("Database init");
+	
 var monk = require('monk');
-var db = monk('localhost:27017/drinkomatic');
-var collection = db.get('drinkomatic');
-
-const start = async () => {
-    console.log("Database init");
-
-    console.log("Clearing...");
-    await collection.remove()
-	.then(function(ok) {
-	    console.log("Clear OK");
-	},function(error) {
-	    console.log("Clear FAILED");
-	});
-
-    console.log("Inserting new elements");
-    for(var i=0; i<data.length; i++) {
-	item = data[i];
-	await collection.insert(item)
-	    .then(function(item) {
-		console.log("Insert OK: " + item.type + " " + item.name);
-	    },function(error) {
-		console.log("Insert FAILED ");
-	    });
+monk('localhost:27017/drinkomatic').then((db) => {
+    const start = async() => {
+	var collection = db.get('drinkomatic');   
+	
+	console.log("Clearing...");
+	await db._db.dropDatabase();
+    
+	console.log("Inserting new elements");
+	for(var i=0; i<data.length; i++) {
+	    item = data[i];
+	    await collection.insert(item)
+		.then(function(item) {
+		    console.log("Insert OK: " + item.type + " " + item.name);
+		},function(error) {
+		    console.log("Insert FAILED ");
+		});
+	}
+	console.log("Done!");
+	process.exit();
     }
-    console.log("Done!");
-    process.exit();
-}
-
-start();
+    
+    start();
+});
 
 
 
